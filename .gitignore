@@ -1,0 +1,4 @@
+*.dis
+*.log
+*.elf
+.*.swp
