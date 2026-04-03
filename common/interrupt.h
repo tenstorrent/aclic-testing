@@ -4,6 +4,7 @@
 #include "util.h"
 #include <stdint.h>
 
+// TODO: expect_interrupt should have major and minor interrupt numbers and iprio
 #define expect_interrupt(N) defer(push_intr(N), pop_intr(N))
 #define expect_exception(N) defer(set_excp_ok(), check_mcause(N))
 

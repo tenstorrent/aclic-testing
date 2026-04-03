@@ -61,5 +61,12 @@ int main()
         assert((aclicsourcecfg0 & 0xffff) == 0);
     }
 
+    // Bit 0 of eip0, eie0 are read-only zero
+    {
+        uint64_t eip0 = 1, eie0 = 1;
+        write_iregn_select(DOMAIN_M, 1, eip0, EIP0);
+        write_iregn_select(DOMAIN_M, 1, eie0, EIE0);
+    }
+
     return 0;
 }

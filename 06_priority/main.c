@@ -24,7 +24,52 @@ int main()
         assert(iprio != illegal_iprio);
     }
 
-    // Set/clear multiple pending/endabled bits for sources with different
+    // When interrupt sources have equal priority number, the source with the
+    // lowest identity number has the highest priority
+    {
+        set_source_mode(DOMAIN_M, 1, SM_EDGE1);
+        set_source_mode(DOMAIN_M, 2, SM_EDGE1);
+        set_iprio(DOMAIN_M, 1, 1);
+        set_iprio(DOMAIN_M, 2, 1);
+        set_enabled(DOMAIN_M, 1, 1);
+        set_enabled(DOMAIN_M, 2, 1);
+        expect_interrupt(1) {
+            expect_interrupt(2) {
+                write_iregn_select(DOMAIN_M, 1, 0x6, EIP0);
+            }
+        }
+    }
+
+    // TODO: Sources with iprio >= xithreshold & NIPPRIO_MASK are suppressed
+    {
+        set_source_mode(DOMAIN_M, 1, SM_EDGE1);
+        set_source_mode(DOMAIN_M, 2, SM_EDGE1);
+        set_iprio(DOMAIN_M, 1, 1);
+        set_iprio(DOMAIN_M, 2, 2);
+        set_enabled(DOMAIN_M, 1, 1);
+        set_enabled(DOMAIN_M, 2, 1);
+
+        uint64_t mithreshold = 4;
+        csr_write(MITHRESHOLD, mithreshold);
+
+        // TODO: re-enable interrupts during handler
+        expect_interrupt(1) {
+            expect_interrupt(2) {
+                // pithreshold set to 4
+                // mithreshold set to 1 during handler
+                write_iregn_select(DOMAIN_M, 1, 0x6, EIP0);
+            }
+        }
+        csr_read(MITHRESHOLD, mithreshold);
+        assert(mithreshold == 4);
+
+        uint64_t mpistatus;
+        csr_read(MPISTATUS, mpistatus);
+        uint64_t pithreshold = mpistatus & 0xff;
+        assert(pithreshold == 4);
+    }
+
+    // Set/clear multiple pending/enabled bits for sources with different
     // priorities in a single write a write
     {
         set_source_mode(DOMAIN_M, 1, SM_EDGE1);
@@ -46,13 +91,18 @@ int main()
         }
     }
 
-    // Change priority of pending interrupt
+    // TODO: Change priority of pending interrupt
 #if 0
     {
         // TODO: set threshold?
         set_iprio(DOMAIN_M, id, 2);
     }
 #endif
+
+  // TODO: While handling an interrupt with iprio N, interrupt sources with iprio >= N
+  // are suppressed until handling is finished
+
+  // TODO: xithreshold is saved/restore to/from xpistatus.pithreshold
 
     exit(0);
 }

@@ -10,6 +10,8 @@
   - Child index is 0 for delegated sources
   - Clearing delegated bit in M-mode domain makes source appear unimplemented
     in S-mode domain
+  - An interrupt source is inactive in the interrupt domain if the source is
+    delegated
 4. Read-only zero
   - Unimplemented sources have read-only-zero pending, enabled, iprio, and
     sourcecfg
@@ -27,18 +29,26 @@
     lowest identity number has the highest priority
   - Set/clear multiple pending/endabled bits for sources with different
     priorities in a single write a write
-  - Sources with iprio >= xithreshold & NIPPRIO\_MASK are suppressed
-  - While handling an interrupt with iprio N, interrupt sources with iprio >= N
+  - TODO: Sources with iprio >= xithreshold & NIPPRIO\_MASK are suppressed
+  - TODO: While handling an interrupt with iprio N, interrupt sources with iprio >= N
     are suppressed until handling is finished
-  - Change priority of pending interrupt
-  - xithreshold is saved/restore to/from xpistatus.pithreshold
+  - TODO: Change priority of pending interrupt
+  - TODO: xithreshold is saved/restore to/from xpistatus.pithreshold
 7. Preemption
-  - Signal interrupt with lower priority during handler
+  - TODO: Signal interrupt with lower priority during handler
 8. Misc
-  - Pending bit is read-only for level-sensitive sources (?)
+  - M- and S-level domains have distinct sourcecfg, iprio, eie, and eip
+  - Pending bit is read-only for level-sensitive sources
   - Transition between different source modes for different source states
-  - Test with and without S-level domain
-  - Use CSR set/clear instructions for things like D bit in sourcecfg
+  - TODO: Test with and without S-level domain
+  - TODO: Use CSR set/clear instructions for things like D bit in sourcecfg
+9. Interrupt handler push and pop
+  - TODO: store page fault during context save
+10. Stack pointer swap
+  - PPUSH is saved unconditionally
+  - PUSH is restored unconditionally
+  - PUSH is cleared on push
+  - PPUSH is cleared on pop
 
 ## Extensions
 

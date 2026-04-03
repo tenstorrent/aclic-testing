@@ -3,9 +3,8 @@
 #include "common/aclic.h"
 #include "common/interrupt.h"
 #include "common/mode.h"
+#include "common/htif.h"
 #include <assert.h>
-
-void exit(int);
 
 void
 umode()
@@ -19,6 +18,8 @@ umode()
 
 int main()
 {
+    csr_set(mstatus, 1u << 25); // set MIPU (NOTE: bit position will change!)
+
     int id = 1;
     set_source_mode(DOMAIN_M, id, SM_EDGE1);
     set_enabled(DOMAIN_M, id, 1);

@@ -63,6 +63,30 @@ int main()
         undelegate(id);
         sm = get_source_mode(DOMAIN_S, id);
         assert(sm == SM_INACTIVE);
+
+        delegate(id);
+        set_source_mode(DOMAIN_S, id, SM_EDGE1);
+        set_source_mode(DOMAIN_M, id, SM_EDGE1); // clears D
+        sm = get_source_mode(DOMAIN_S, id);
+        assert(sm == SM_INACTIVE);
+    }
+
+    // An interrupt source is inactive in the interrupt domain if the source is delegated
+    // Whenever interrupt source i is inactive in an interrupt domain, the
+    // corresponding interrupt-pending and interrupt-enable bits within the
+    // domain are read-only zeros, and register target[i] is also read-only
+    // zero.
+    {
+        int id = 1;
+        delegate(id);
+        set_source_mode(DOMAIN_S, id, SM_EDGE1);
+
+        set_iprio(DOMAIN_M, id, 2);
+        assert(get_iprio(DOMAIN_M, id) == 0);
+        set_enabled(DOMAIN_M, id, 1);
+        assert(get_enabled(DOMAIN_M, id) == 0);
+        set_pending(DOMAIN_M, id, 1);
+        assert(get_pending(DOMAIN_M, id) == 0);
     }
 
     // Test delegation of interrupt to S-mode domain

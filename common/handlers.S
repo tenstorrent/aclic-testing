@@ -1,3 +1,56 @@
+#include "csr.h"
+
+#if 1
+.globl mhandler
+.align 3
+mhandler:
+    csrrw sp, mscratch, sp
+
+    addi sp, sp, -128
+
+    sd ra,   0(sp)
+    sd t0,   8(sp)
+    sd t1,  16(sp)
+    sd t2,  24(sp)
+    sd t3,  32(sp)
+    sd t4,  40(sp)
+    sd t5,  48(sp)
+    sd t6,  56(sp)
+
+    sd a0,  64(sp)
+    sd a1,  72(sp)
+    sd a2,  80(sp)
+    sd a3,  88(sp)
+    sd a4,  96(sp)
+    sd a5, 104(sp)
+    sd a6, 112(sp)
+    sd a7, 120(sp)
+
+    jal mhandler_body
+
+    ld ra,   0(sp)
+    ld t0,   8(sp)
+    ld t1,  16(sp)
+    ld t2,  24(sp)
+    ld t3,  32(sp)
+    ld t4,  40(sp)
+    ld t5,  48(sp)
+    ld t6,  56(sp)
+
+    ld a0,  64(sp)
+    ld a1,  72(sp)
+    ld a2,  80(sp)
+    ld a3,  88(sp)
+    ld a4,  96(sp)
+    ld a5, 104(sp)
+    ld a6, 112(sp)
+    ld a7, 120(sp)
+
+    addi sp, sp, 128
+
+    csrrw sp, mscratch, sp
+    mret
+#else
 .globl mhandler
 .align 3
 mhandler:
@@ -71,6 +124,68 @@ mhandler:
 1:  jal print_str
     li a0, 1
     j exit
+#endif
+
+// TODO: create install_handler()
+.globl install_mhandler_preemption
+install_mhandler_preemption:
+    la t0, mhandler_preemption
+    csrw mtvec, t0
+    ret
+
+.align 3
+.globl mhandler_preemption
+mhandler_preemption:
+    csrrw sp, mscratch, sp
+
+    addi sp, sp, -64
+
+    sd t0, (sp)
+    csrr t0, mstatus
+    sd t0, 8(sp)
+    csrr t0, mepc
+    sd t0, 16(sp)
+    csrr t0, mcause
+    sd t0, 24(sp)
+    csrr t0, MPISTATUS
+    sd t0, 32(sp)
+    csrr t0, MSPCS
+    sd t0, 40(sp)
+    csrr t0, mscratch
+    sd t0, 48(sp)
+    sd x22, 56(sp)
+
+    csrw mscratch, sp
+
+// signal interrupt with id=2
+    li x22, 2
+    addi x0, x22, 1
+
+// re-enable interrupts
+    csrsi mstatus, 8 // MIE=1
+
+// claim
+    csrrw t0, mtopei, x0
+
+    ld x22, 56(sp)
+    ld t0, 48(sp)
+    csrw mscratch, t0
+    ld t0, 40(sp)
+    csrw MSPCS, t0
+    ld t0, 32(sp)
+    csrw MPISTATUS, t0
+    ld t0, 24(sp)
+    csrw mcause, t0
+    ld t0, 16(sp)
+    csrw mepc, t0
+    ld t0, 8(sp)
+    csrw mstatus, t0
+    ld t0, (sp)
+
+    addi sp, sp, 64
+
+    csrrw sp, mscratch, sp
+    mret
 
 .globl shandler
 .align 3
