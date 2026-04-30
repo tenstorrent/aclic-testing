@@ -31,15 +31,17 @@ RedHat:
 sudo dnf install gcc-riscv64-unknown-elf binutils-riscv64-unknown-elf
 ```
 
-```bash
-riscv64-unknown-elf-gcc --version
-```
-
 MacOS:
 
 ```bash
 brew tap riscv-software-src/riscv
 brew install riscv-tools
+```
+
+You can confirm that the installation was successful with:
+
+```bash
+riscv64-unknown-elf-gcc --version
 ```
 
 ## Installing Whisper
