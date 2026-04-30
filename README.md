@@ -4,12 +4,14 @@ This is a test suite for the upcoming [ACLIC
 specification](https://github.com/riscv/riscv-fast-interrupt) being drafted by
 the Fast Interrupts Task Group.
 
+## Getting Started 
+
 To compile and run the tests, you will need:
 
 - The RISC-V toolchain
 - [Whisper ISS](https://github.com/tenstorrent/whisper/)
 
-## Installing RISC-V Toolchain
+### Installing RISC-V Toolchain
 
 The RISC-V toolchain is available via a variety of package managers:
 
@@ -44,7 +46,7 @@ You can confirm that the installation was successful with:
 riscv64-unknown-elf-gcc --version
 ```
 
-## Installing Whisper
+### Installing Whisper
 
 The steps to obtain and compile whisper can be found below. Whisper requires
 Boost and a C++20 compiler. The Makefile assumes that the `BOOST_ROOT`
@@ -60,7 +62,7 @@ Once Whisper has been compiled, you may wish to add it to your `PATH`
 environment variable. It can be found in the subdirectory beginning with
 `build-`.
 
-## Compiling and Running Tests
+### Compiling and Running Tests
 
 Each test directory includes a Makefile which points to the shared Makefile in
 the `common` subdirectory. This Makefile assumes that the RISC-V toolchain and
@@ -69,7 +71,7 @@ assumed to be called `riscv64-unknown-elf-gcc`, though this may vary.
 
 To compile and run the tests, run `./run-tests.sh`.
 
-## ACLIC Specification
+### ACLIC Specification
 
 The ACLIC specification is still in draft and details are still changing
 frequently. For the purposes of testing, some temporary assumptions have been
@@ -80,3 +82,16 @@ made that are likely to change before ratification:
 - The ACLIC spec currently allocates CSR address 0x308 for `meivt`, but this is
   already allocated for `mvien` from AIA. The test suite assumes `meivt` is
   allocated to 0x398.
+
+## Contributing 
+
+To contribute, please open an issue or PR. Please keep PRs small and focused.
+
+### Code of Conduct
+- Be respectful. Remember: we critique code, not people.
+- Technical disagreements are expected, but final maintainership decisions must be respected.
+- Our shared goal is robust, correct, and maintainable code.
+
+## License 
+
+This project uses the Apache 2.0 license. See the LICENSE file for details.
