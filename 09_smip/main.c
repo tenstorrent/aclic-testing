@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: © 2026 Tenstorrent USA, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 #include "common/csr.h"
 #include "common/ireg.h"
 #include "common/aclic.h"

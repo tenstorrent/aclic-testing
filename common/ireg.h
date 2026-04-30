@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: © 2026 Tenstorrent USA, Inc.
+// SPDX-License-Identifier: Apache-2.0
+
 #ifndef IREG_H
 #define IREG_H
 
