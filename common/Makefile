@@ -8,7 +8,7 @@ CPPFLAGS = -I../
 CPPFLAGS += -DASSERT_PRINT
 CPPFLAGS += -DACLIC_HINTS
 
-WHISPER = /proj_risc/user_dev/pkennedy/swerv-iss-aclic/build-Linux/whisper
+WHISPER = whisper
 
 MAX_INST = 10000
 
