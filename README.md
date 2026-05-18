@@ -85,13 +85,16 @@ made that are likely to change before ratification:
 
 ## Contributing 
 
-To contribute, please open an issue or PR. Please keep PRs small and focused.
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on:
 
-### Code of Conduct
-- Be respectful. Remember: we critique code, not people.
-- Technical disagreements are expected, but final maintainership decisions must be respected.
-- Our shared goal is robust, correct, and maintainable code.
+- Reporting bugs via GitHub Issues
+- Submitting Pull Requests
+- Coding standards and testing requirements
+
+Pull requests are reviewed weekly. This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## License 
 
-This project uses the Apache 2.0 license. See the LICENSE file for details.
+This project uses the Apache 2.0 license. See the [LICENSE](LICENSE) file for the full license text.
+
+For additional clarification on how the Apache 2.0 license applies to this project, including commercial use, modifications, and patent grants, see [LICENSE_understanding.txt](LICENSE_understanding.txt).
