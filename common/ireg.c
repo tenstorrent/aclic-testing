@@ -13,10 +13,10 @@ write_iselect(int domain, int index)
         csr_write(siselect, index);
 }
 
-uint64_t
+xlreg_t
 read_iregn(int domain, int n)
 {
-    uint64_t value = 0;
+    xlreg_t value = 0;
     if (domain == DOMAIN_M) {
         switch (n) {
             case 1: csr_read(MIREG,  value); break;
@@ -40,7 +40,7 @@ read_iregn(int domain, int n)
 }
 
 void
-write_iregn(int domain, int n, uint64_t value)
+write_iregn(int domain, int n, xlreg_t value)
 {
     if (domain == DOMAIN_M) {
         switch (n) {
@@ -63,7 +63,7 @@ write_iregn(int domain, int n, uint64_t value)
     }
 }
 
-uint64_t
+xlreg_t
 read_iregn_select(int domain, int n, int index)
 {
     write_iselect(domain, index);
@@ -71,14 +71,14 @@ read_iregn_select(int domain, int n, int index)
 }
 
 void
-write_iregn_select(int domain, int n, uint64_t value, int index)
+write_iregn_select(int domain, int n, xlreg_t value, int index)
 {
     write_iselect(domain, index);
     write_iregn(domain, n, value);
 }
 
 void
-set_or_clear_ireg_bits(int domain, uint64_t bits, int set)
+set_or_clear_ireg_bits(int domain, xlreg_t bits, int set)
 {
     if (domain == DOMAIN_M) {
         if (set)

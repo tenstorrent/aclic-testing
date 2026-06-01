@@ -10,7 +10,7 @@
 #include "common/test.h"
 
 static inline uint64_t read_mtopei(void)
-{ uint64_t v; csr_read(mtopei, v); return v; }
+{ xlreg_t v; csr_read(mtopei, v); return v; }
 
 int main(void)
 {

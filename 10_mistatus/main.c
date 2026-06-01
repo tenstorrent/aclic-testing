@@ -8,9 +8,9 @@
 #include "common/test.h"
 #include <stdint.h>
 
-static inline uint64_t read_mistatus(void)    { uint64_t v; csr_read_num(MISTATUS, v); return v; }
+static inline uint64_t read_mistatus(void)    { xlreg_t v; csr_read_num(MISTATUS, v); return v; }
 static inline void     write_mistatus(uint64_t v) { csr_write_num(MISTATUS, v); }
-static inline uint64_t read_mstatus(void)     { uint64_t v; csr_read(mstatus, v); return v; }
+static inline uint64_t read_mstatus(void)     { xlreg_t v; csr_read(mstatus, v); return v; }
 
 int main(void)
 {

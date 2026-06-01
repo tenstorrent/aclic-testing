@@ -13,11 +13,11 @@
 int main(void)
 {
     test("mtvec_mode_10_writable_with_smeihv") {
-        uint64_t saved;
+        xlreg_t saved;
         csr_read(mtvec, saved);
-        uint64_t base = saved & ~0x3ull;
+        xlreg_t base = saved & ~0x3ull;
         csr_write(mtvec, base | 2);       // mode = 10
-        uint64_t got;
+        xlreg_t got;
         csr_read(mtvec, got);
         fail_if((got & 0x3) != 2);
         csr_write(mtvec, saved);          // restore

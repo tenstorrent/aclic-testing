@@ -5,6 +5,7 @@
 #define ACLIC_H
 
 #include <stdint.h>
+#include "xlen.h"
 
 #define NUM_SOURCES 16
 #define IPRIOLEN 8

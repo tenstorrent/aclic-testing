@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include "csr.h"
+#include "xlen.h"
 
 enum {
     DOMAIN_M,
@@ -13,10 +14,10 @@ enum {
 };
 
 void write_iselect(int domain, int index);
-uint64_t read_iregn(int domain, int n);
-void write_iregn(int domain, int n, uint64_t value);
-uint64_t read_iregn_select(int domain, int n, int index);
-void write_iregn_select(int domain, int n, uint64_t value, int index);
-void set_or_clear_ireg_bits(int domain, uint64_t bits, int set);
+xlreg_t read_iregn(int domain, int n);
+void write_iregn(int domain, int n, xlreg_t value);
+xlreg_t read_iregn_select(int domain, int n, int index);
+void write_iregn_select(int domain, int n, xlreg_t value, int index);
+void set_or_clear_ireg_bits(int domain, xlreg_t bits, int set);
 
 #endif

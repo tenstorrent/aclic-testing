@@ -16,7 +16,10 @@
 
 int main(void)
 {
-    int id = 5;   // id % 8 == 5 -> packed sourcecfg lives in xireg3
+    // First source whose packed sourcecfg lives in xireg3 (the high half) at
+    // selector 0x1000.  SCFG_FIELDS is 4 on RV64 (id 4) and 2 on RV32 (id 2),
+    // so this routes through sireg3 on either XLEN.
+    int id = SCFG_FIELDS;
 
     test("sireg3_sourcecfg_roundtrip") {
         // Delegate the source to the S-domain, then drive its sourcecfg there.

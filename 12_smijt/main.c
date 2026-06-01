@@ -15,26 +15,26 @@ int main(void)
     test("mijt_base_64byte_aligned") {
         // Write a 64-byte-aligned address; low 6 bits must read back zero
         // (WARL on BASE).
-        uint64_t addr = 0x80004000ull;     // aligned to 64
+        xlreg_t addr = 0x80004000ull;      // aligned to 64
         csr_write_num(MIJT, addr | 0x3F);  // try to set low bits
-        uint64_t got;
+        xlreg_t got;
         csr_read_num(MIJT, got);
         // Low 6 bits: SHAMT[1:0] and EHV[3:2] are writable; bits[5:4] reserved.
         fail_if((got & ~0x0F) != (addr & ~0x3F));
     }
 
     test("mijt_shamt_field_writable") {
-        uint64_t base = 0x80004000ull;
+        xlreg_t base = 0x80004000ull;
         csr_write_num(MIJT, base | 3);     // SHAMT = 3
-        uint64_t got;
+        xlreg_t got;
         csr_read_num(MIJT, got);
         fail_if((got & 0x3) != 3);
     }
 
     test("mijt_ehv_field_writable") {
-        uint64_t base = 0x80004000ull;
+        xlreg_t base = 0x80004000ull;
         csr_write_num(MIJT, base | (1ull << 2));  // EHV[3:2] = 01
-        uint64_t got;
+        xlreg_t got;
         csr_read_num(MIJT, got);
         fail_if(((got >> 2) & 0x3) != 1);
     }

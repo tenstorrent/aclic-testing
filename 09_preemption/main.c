@@ -14,7 +14,7 @@
 #include "common/test.h"
 
 static inline void write_mithreshold(uint64_t v) { csr_write_num(MITHRESHOLD, v); }
-static inline uint64_t read_mtopsi(void)         { uint64_t v; csr_read_num(MTOPSI, v); return v; }
+static inline uint64_t read_mtopsi(void)         { xlreg_t v; csr_read_num(MTOPSI, v); return v; }
 
 int main(void)
 {
@@ -41,8 +41,8 @@ int main(void)
         set_pending(DOMAIN_M, id_low,  1);
         set_pending(DOMAIN_M, id_high, 1);
 
-        uint64_t v = read_mtopsi();
-        fail_if((int64_t)v >> 16 != id_high);
+        xlreg_t v = read_mtopsi();
+        fail_if((intptr_t)v >> 16 != id_high);
 
         // Cleanup
         set_pending(DOMAIN_M, id_low,  0);

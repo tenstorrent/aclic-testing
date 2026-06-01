@@ -16,11 +16,11 @@
 #include "common/test.h"
 
 static inline uint64_t read_mtopsi(void) {
-    uint64_t v; csr_read_num(MTOPSI, v); return v;
+    xlreg_t v; csr_read_num(MTOPSI, v); return v;
 }
 
 static inline void write_mithreshold(uint64_t v) { csr_write_num(MITHRESHOLD, v); }
-static inline uint64_t read_mithreshold(void)    { uint64_t v; csr_read_num(MITHRESHOLD, v); return v; }
+static inline uint64_t read_mithreshold(void)    { xlreg_t v; csr_read_num(MITHRESHOLD, v); return v; }
 
 int main(void)
 {
@@ -34,8 +34,8 @@ int main(void)
         // No pending+enabled source — mtopsi returns SIID=0, IPRIO=mithreshold.
         // Use a recognizable threshold value 0x42 (66 dec).
         write_mithreshold(0x42);
-        uint64_t v = read_mtopsi();
-        fail_if((int64_t)v >> 16 != 0);
+        xlreg_t v = read_mtopsi();
+        fail_if((intptr_t)v >> 16 != 0);
         fail_if((v & 0x1FF) != 0x42);
     }
 
@@ -46,9 +46,9 @@ int main(void)
         set_enabled(DOMAIN_M, id1, 1);
         set_pending(DOMAIN_M, id1, 1);
 
-        uint64_t v = read_mtopsi();
+        xlreg_t v = read_mtopsi();
         // SIID = +id1 (positive), IPRIO = 7
-        fail_if((int64_t)v >> 16 != id1);
+        fail_if((intptr_t)v >> 16 != id1);
         fail_if((v & 0x1FF) != 7);
 
         set_pending(DOMAIN_M, id1, 0);
@@ -68,8 +68,8 @@ int main(void)
         set_enabled(DOMAIN_M, id2, 1);
         set_pending(DOMAIN_M, id2, 1);
 
-        uint64_t v = read_mtopsi();
-        fail_if((int64_t)v >> 16 != id2);
+        xlreg_t v = read_mtopsi();
+        fail_if((intptr_t)v >> 16 != id2);
         fail_if((v & 0x1FF) != 3);
 
         set_pending(DOMAIN_M, id1, 0);
@@ -89,10 +89,10 @@ int main(void)
         set_pending(DOMAIN_M, id1, 1);
 
         // CSRRW: write 0 (no extra raise) and capture pre-side-effect snapshot.
-        uint64_t pre = 0;
+        xlreg_t pre = 0;
         mclaim_topsi(pre, 0);
         // Pre-snapshot reports the interrupt we just claimed.
-        fail_if((int64_t)pre >> 16 != id1);
+        fail_if((intptr_t)pre >> 16 != id1);
         fail_if((pre & 0x1FF) != 3);
         // After claim: pending cleared (edge source) and threshold raised to IPRIO=3.
         fail_if(get_pending(DOMAIN_M, id1));

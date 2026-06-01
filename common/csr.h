@@ -6,8 +6,11 @@
 #ifndef CSR_H
 #define CSR_H
 
+#include "xlen.h"   // XLEN, xlreg_t (and REG_S/REG_L/SZREG for assembly)
+
 // Standard CSRs we touch from startup code.
 #define MSTATEEN0       0x30c
+#define MSTATEEN0H      0x31c   // high half of mstateen0 (RV32 only)
 #define MNSTATUS        0x744
 
 // Indirect-access ACLIC CSRs.  Spec §Smidctrl + §Smnip use mireg/2/3 for

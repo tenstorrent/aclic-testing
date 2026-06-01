@@ -10,8 +10,8 @@
 #include "common/test.h"
 
 static inline void write_mithreshold(uint64_t v) { csr_write_num(MITHRESHOLD, v); }
-static inline uint64_t read_mithreshold(void)    { uint64_t v; csr_read_num(MITHRESHOLD, v); return v; }
-static inline uint64_t read_mtopsi(void)         { uint64_t v; csr_read_num(MTOPSI, v); return v; }
+static inline uint64_t read_mithreshold(void)    { xlreg_t v; csr_read_num(MITHRESHOLD, v); return v; }
+static inline uint64_t read_mtopsi(void)         { xlreg_t v; csr_read_num(MTOPSI, v); return v; }
 
 int main(void)
 {
@@ -33,9 +33,9 @@ int main(void)
         set_iprio(DOMAIN_M, id, 255);  // lowest priority
         set_enabled(DOMAIN_M, id, 1);
         set_pending(DOMAIN_M, id, 1);
-        uint64_t v = read_mtopsi();
+        xlreg_t v = read_mtopsi();
         // Source should still be visible despite IPRIO=255 (highest numeric).
-        fail_if((int64_t)v >> 16 != id);
+        fail_if((intptr_t)v >> 16 != id);
         set_pending(DOMAIN_M, id, 0);
         set_enabled(DOMAIN_M, id, 0);
         set_source_mode(DOMAIN_M, id, SM_INACTIVE);
@@ -48,9 +48,9 @@ int main(void)
         set_iprio(DOMAIN_M, id, 7);
         set_enabled(DOMAIN_M, id, 1);
         set_pending(DOMAIN_M, id, 1);
-        uint64_t v = read_mtopsi();
+        xlreg_t v = read_mtopsi();
         // Source suppressed -> xtopsi reports SIID=0, IPRIO=threshold(=5).
-        fail_if((int64_t)v >> 16 != 0);
+        fail_if((intptr_t)v >> 16 != 0);
         fail_if((v & 0x1FF) != 5);
         set_pending(DOMAIN_M, id, 0);
         set_enabled(DOMAIN_M, id, 0);

@@ -26,6 +26,6 @@ go_to_smode(void (*fp)(void))
 void
 go_to_mmode(void (*fp)(void))
 {
-    ecall_dest = (uint64_t) fp;
+    ecall_dest = (uintptr_t) fp;
     asm volatile("ecall" ::: "memory");
 }

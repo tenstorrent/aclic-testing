@@ -13,7 +13,7 @@ int main(void)
 {
     test("xijt_ehv_can_be_programmed_to_nonzero") {
         csr_write_num(MIJT, 0x80004000ull | (1ull << 2));
-        uint64_t got;
+        xlreg_t got;
         csr_read_num(MIJT, got);
         fail_if(((got >> 2) & 0x3) == 0);
     }

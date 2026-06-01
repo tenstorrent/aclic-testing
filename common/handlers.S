@@ -2,52 +2,56 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "csr.h"
+#include "xlen.h"
+
+// 16 XLEN-wide registers are saved on each trap.
+#define FRAME (16 * SZREG)
 
 .globl mhandler
 .align 3
 mhandler:
     csrrw sp, mscratch, sp
-    addi sp, sp, -128
+    addi sp, sp, -FRAME
 
-    sd ra,   0(sp)
-    sd t0,   8(sp)
-    sd t1,  16(sp)
-    sd t2,  24(sp)
-    sd t3,  32(sp)
-    sd t4,  40(sp)
-    sd t5,  48(sp)
-    sd t6,  56(sp)
+    REG_S ra,  0*SZREG(sp)
+    REG_S t0,  1*SZREG(sp)
+    REG_S t1,  2*SZREG(sp)
+    REG_S t2,  3*SZREG(sp)
+    REG_S t3,  4*SZREG(sp)
+    REG_S t4,  5*SZREG(sp)
+    REG_S t5,  6*SZREG(sp)
+    REG_S t6,  7*SZREG(sp)
 
-    sd a0,  64(sp)
-    sd a1,  72(sp)
-    sd a2,  80(sp)
-    sd a3,  88(sp)
-    sd a4,  96(sp)
-    sd a5, 104(sp)
-    sd a6, 112(sp)
-    sd a7, 120(sp)
+    REG_S a0,  8*SZREG(sp)
+    REG_S a1,  9*SZREG(sp)
+    REG_S a2, 10*SZREG(sp)
+    REG_S a3, 11*SZREG(sp)
+    REG_S a4, 12*SZREG(sp)
+    REG_S a5, 13*SZREG(sp)
+    REG_S a6, 14*SZREG(sp)
+    REG_S a7, 15*SZREG(sp)
 
     jal mhandler_body
 
-    ld ra,   0(sp)
-    ld t0,   8(sp)
-    ld t1,  16(sp)
-    ld t2,  24(sp)
-    ld t3,  32(sp)
-    ld t4,  40(sp)
-    ld t5,  48(sp)
-    ld t6,  56(sp)
+    REG_L ra,  0*SZREG(sp)
+    REG_L t0,  1*SZREG(sp)
+    REG_L t1,  2*SZREG(sp)
+    REG_L t2,  3*SZREG(sp)
+    REG_L t3,  4*SZREG(sp)
+    REG_L t4,  5*SZREG(sp)
+    REG_L t5,  6*SZREG(sp)
+    REG_L t6,  7*SZREG(sp)
 
-    ld a0,  64(sp)
-    ld a1,  72(sp)
-    ld a2,  80(sp)
-    ld a3,  88(sp)
-    ld a4,  96(sp)
-    ld a5, 104(sp)
-    ld a6, 112(sp)
-    ld a7, 120(sp)
+    REG_L a0,  8*SZREG(sp)
+    REG_L a1,  9*SZREG(sp)
+    REG_L a2, 10*SZREG(sp)
+    REG_L a3, 11*SZREG(sp)
+    REG_L a4, 12*SZREG(sp)
+    REG_L a5, 13*SZREG(sp)
+    REG_L a6, 14*SZREG(sp)
+    REG_L a7, 15*SZREG(sp)
 
-    addi sp, sp, 128
+    addi sp, sp, FRAME
     csrrw sp, mscratch, sp
     mret
 
@@ -55,8 +59,8 @@ mhandler:
 .align 3
 shandler:
     csrrw sp, sscratch, sp
-    sd t1, (sp)
-    sd t2, 8(sp)
+    REG_S t1, 0*SZREG(sp)
+    REG_S t2, 1*SZREG(sp)
 
     csrr t1, scause
     bgez t1, 1f
@@ -69,8 +73,8 @@ shandler:
     addi t2, t2, 4
     csrw sepc, t2
 
-2:  ld t2, 8(sp)
-    ld t1, (sp)
+2:  REG_L t2, 1*SZREG(sp)
+    REG_L t1, 0*SZREG(sp)
     csrrw sp, sscratch, sp
     sret
 
