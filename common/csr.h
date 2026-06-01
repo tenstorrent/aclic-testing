@@ -48,21 +48,27 @@
 #define SIJT            0x107
 
 #define STR(X) #X
+#define XSTR(X) STR(X)     // double-expand: XSTR(macro) -> "value-of-macro"
 
 #define csr_write(csr, val)  asm volatile("csrw " STR(csr) ", %0" :: "r"(val)  : "memory")
 #define csr_read(csr, val)   asm volatile("csrr %0, " STR(csr)    : "=r"(val) :: "memory")
 #define csr_set(csr, bits)   asm volatile("csrs " STR(csr) ", %0" :: "r"(bits) : "memory")
 #define csr_clear(csr, bits) asm volatile("csrc " STR(csr) ", %0" :: "r"(bits) : "memory")
 
-// Read-and-claim helpers (legacy xtopei interface, still present per spec PR #831).
+// Numeric-CSR variants for CSRs the assembler doesn't know by name (e.g. MTOPSI).
+#define csr_write_num(csr, val)  asm volatile("csrw " XSTR(csr) ", %0" :: "r"(val) : "memory")
+#define csr_read_num(csr, val)   asm volatile("csrr %0, " XSTR(csr)    : "=r"(val) :: "memory")
+#define csr_set_num(csr, bits)   asm volatile("csrs " XSTR(csr) ", %0" :: "r"(bits) : "memory")
+#define csr_clear_num(csr, bits) asm volatile("csrc " XSTR(csr) ", %0" :: "r"(bits) : "memory")
+
 #define mclaim(val)          asm volatile("csrrw %0, mtopei, x0" : "=r"(val) :: "memory")
 #define sclaim(val)          asm volatile("csrrw %0, stopei, x0" : "=r"(val) :: "memory")
 
 // xtopsi claim-and-raise.  Source bits[16:8] become the new xithreshold; the
 // returned value is the pre-side-effect xtopsi snapshot.
 #define mclaim_topsi(out, raise) \
-    asm volatile("csrrw %0, " STR(MTOPSI) ", %1" : "=r"(out) : "r"(raise) : "memory")
+    asm volatile("csrrw %0, " XSTR(MTOPSI) ", %1" : "=r"(out) : "r"(raise) : "memory")
 #define sclaim_topsi(out, raise) \
-    asm volatile("csrrw %0, " STR(STOPSI) ", %1" : "=r"(out) : "r"(raise) : "memory")
+    asm volatile("csrrw %0, " XSTR(STOPSI) ", %1" : "=r"(out) : "r"(raise) : "memory")
 
 #endif
