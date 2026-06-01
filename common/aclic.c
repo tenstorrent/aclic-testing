@@ -84,8 +84,9 @@ void
 delegate(int id)
 {
     int j = id % 8;
-    uint64_t mask = 0xffffull << j*16;
-    uint64_t d = (1ull << 10) << j*16;
+    int shamt = (id % 4) * 16;   // offset within the packed register (xireg2/3)
+    uint64_t mask = 0xffffull << shamt;
+    uint64_t d = (1ull << 10) << shamt;
     int index = 0x1000 + id/8;
     int n = (j < 4) ? 2 : 3;
     uint64_t value = read_iregn_select(DOMAIN_M, n, index);
