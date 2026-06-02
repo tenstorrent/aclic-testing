@@ -7,24 +7,33 @@
 # which extensions are present (see common/probe.h) and SKIP the blocks whose
 # feature is absent, so a single ELF runs unchanged under all configurations.
 #
+# Both the build stage and the run stage run in parallel (ThreadPoolExecutor);
+# the build stage fully completes before the run stage starts.  The per-combo
+# ISA is passed via whisper's --isa (which overrides the config-file isa), so a
+# single static config (common/aclic.json, the aclic block only) is shared by
+# all runs -- no per-run temp files, and runs are independent.
+#
 # Only failing (test, xlen, config) runs are printed; a summary follows.
 #
-#   WHISPER=/path/to/whisper ./run-combos.py            # all combos, both XLENs
-#   XLENS="64" ./run-combos.py                          # rv64 only
-#   ./run-combos.py 05_threshold 06_xtopsi              # only these tests
+#   ./run-combos.py                         # all combos, both XLENs
+#   XLENS="64" ./run-combos.py              # rv64 only
+#   JOBS=32 ./run-combos.py                 # cap parallelism (default: nproc)
+#   WHISPER=/path/to/whisper ./run-combos.py
+#   ./run-combos.py 05_threshold 06_xtopsi  # only these tests
 #
 # The whisper used must contain the ACLIC fixes (mireg4 miconfig, mireg5/6,
-# sireg3); set WHISPER accordingly (defaults to ./whisper-fixed if present).
+# sireg3, 9-bit mithreshold); these are on master, so the default PATH whisper
+# is correct.  Override with WHISPER if needed.
 
-import itertools
-import json
 import os
 import re
 import subprocess
 import sys
-import tempfile
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+ACLIC_JSON = os.path.join(HERE, "common", "aclic.json")
+JOBS = int(os.environ.get("JOBS", os.cpu_count() or 8))
 
 # --- ISA substrate (everything except the toggleable feature extensions) -----
 BASE = {
@@ -38,8 +47,6 @@ BASE = {
          "ssidctrl_sscofpmf_ssnpm_ssqosid_sstc_svadu_svinval_svnapot_svpbmt_"
          "zifencei"),
 }
-
-ACLIC = {"num_sources": 16, "has_supervisor_domain": True, "ipriolen": 8}
 
 # Toggleable feature extensions and their prerequisite (which must also be on).
 # Prerequisites match whisper's Isa.cpp dependency rules.
@@ -55,7 +62,6 @@ CRASH_MARKERS = ("Unexpected exception", "Unexpected interrupt",
 
 def valid_combos():
     """All dependency-closed subsets of TOGGLES."""
-    idx = {t: i for i, t in enumerate(TOGGLES)}
     out = []
     for bits in range(1 << len(TOGGLES)):
         enabled = {t for i, t in enumerate(TOGGLES) if bits & (1 << i)}
@@ -69,11 +75,7 @@ def combo_name(combo):
 
 
 def find_whisper():
-    w = os.environ.get("WHISPER")
-    if w:
-        return w
-    local = os.path.join(HERE, "whisper-fixed")
-    return local if os.path.exists(local) else "whisper"
+    return os.environ.get("WHISPER", "whisper")
 
 
 def find_tests(argv):
@@ -81,21 +83,6 @@ def find_tests(argv):
         return argv
     return sorted(d for d in os.listdir(HERE)
                   if re.match(r"\d", d) and os.path.isdir(os.path.join(HERE, d)))
-
-
-def build(tests, xlens):
-    print(f"Building {len(tests)} tests x {len(xlens)} XLEN ...", file=sys.stderr)
-    failed = []
-    for t in tests:
-        for x in xlens:
-            r = subprocess.run(["make", "-s", "-C", os.path.join(HERE, t),
-                                "all", f"XLEN={x}"],
-                               capture_output=True, text=True)
-            if r.returncode != 0:
-                failed.append((t, x, r.stdout + r.stderr))
-    for t, x, log in failed:
-        print(f"BUILD FAILED  {t}  xlen={x}\n{log}", file=sys.stderr)
-    return not failed
 
 
 def classify(rc, out):
@@ -113,52 +100,80 @@ def classify(rc, out):
     return "OK", "", skips, passes
 
 
+def build_all(tests, xlens):
+    """Compile every (test, XLEN) in parallel.  Returns list of failures."""
+    print(f"Building {len(tests)} tests x {len(xlens)} XLEN "
+          f"({JOBS}-way) ...", file=sys.stderr)
+
+    def one(t, x):
+        r = subprocess.run(["make", "-s", "-C", os.path.join(HERE, t),
+                            "all", f"XLEN={x}"], capture_output=True, text=True)
+        return (t, x, r.returncode, r.stdout + r.stderr)
+
+    failed = []
+    with ThreadPoolExecutor(max_workers=JOBS) as ex:
+        futs = [ex.submit(one, t, x) for t in tests for x in xlens]
+        for f in as_completed(futs):
+            t, x, rc, log = f.result()
+            if rc != 0:
+                failed.append((t, x, log))
+    for t, x, log in failed:
+        print(f"BUILD FAILED  {t}  xlen={x}\n{log}", file=sys.stderr)
+    return failed
+
+
+def run_one(whisper, name, x, t, isa):
+    """Run one (config, XLEN, test) and classify the result."""
+    elf = os.path.join(HERE, t, f"test-{x}.elf")
+    r = subprocess.run([whisper, "--isa", isa, "--configfile", ACLIC_JSON,
+                        "-m", "100000", elf], capture_output=True, text=True)
+    status, reason, skips, passes = classify(r.returncode, r.stdout + r.stderr)
+    return (status, name, x, t, reason, skips, passes)
+
+
 def main():
     whisper = find_whisper()
     xlens = [int(x) for x in os.environ.get("XLENS", "64 32").split()]
     tests = find_tests(sys.argv[1:])
 
-    if not build(tests, xlens):
+    if build_all(tests, xlens):
         print("Aborting: build failures.", file=sys.stderr)
         return 1
 
     combos = valid_combos()
-    total = len(combos) * len(xlens) * len(tests)
+    jobs = [(combo_name(c), x, t, BASE[x] + "".join("_" + e for e in c))
+            for c in combos for x in xlens for t in tests]
+    total = len(jobs)
     print(f"{len(combos)} configs x {len(xlens)} XLEN x {len(tests)} tests "
-          f"= {total} runs\n", file=sys.stderr)
+          f"= {total} runs ({JOBS}-way)\n", file=sys.stderr)
 
-    n = nfail = nskip = npass_blocks = 0
-    cfg_path = os.path.join(tempfile.gettempdir(), f"aclic-combo-{os.getpid()}.json")
-    for combo in combos:
-        name = combo_name(combo)
-        for x in xlens:
-            isa = BASE[x] + "".join("_" + t for t in combo)
-            with open(cfg_path, "w") as f:
-                json.dump({"isa": isa, "aclic": ACLIC}, f)
-            for t in tests:
-                elf = os.path.join(HERE, t, f"test-{x}.elf")
-                r = subprocess.run([whisper, "--configfile", cfg_path,
-                                    "-m", "100000", elf],
-                                   capture_output=True, text=True)
-                status, reason, skips, passes = classify(r.returncode,
-                                                          r.stdout + r.stderr)
-                n += 1
-                nskip += skips
-                npass_blocks += passes
-                if status == "FAIL":
-                    nfail += 1
-                    print(f"FAIL  {t:<16} xlen={x}  config={name}\n"
-                          f"      {reason}")
-            print(f"\r  {n}/{total} runs, {nfail} failed ...",
-                  end="", file=sys.stderr, flush=True)
+    results = []
+    done = nfail = 0
+    # Process pool (not threads): each run is a short subprocess plus Python-side
+    # output parsing; a process pool keeps the parsing off the GIL.
+    with ProcessPoolExecutor(max_workers=JOBS) as ex:
+        futs = [ex.submit(run_one, whisper, name, x, t, isa)
+                for (name, x, t, isa) in jobs]
+        for f in as_completed(futs):
+            rec = f.result()
+            results.append(rec)
+            done += 1
+            if rec[0] == "FAIL":
+                nfail += 1
+            if done % 64 == 0 or done == total:
+                print(f"\r  {done}/{total} runs, {nfail} failed ...",
+                      end="", file=sys.stderr, flush=True)
     print("", file=sys.stderr)
-    try:
-        os.remove(cfg_path)
-    except OSError:
-        pass
 
-    print(f"\n=== summary ===")
-    print(f"runs:           {n}")
+    # Only failures, in a deterministic order (test, xlen, config).
+    for status, name, x, t, reason, _s, _p in sorted(
+            (r for r in results if r[0] == "FAIL"), key=lambda r: (r[3], r[2], r[1])):
+        print(f"FAIL  {t:<16} xlen={x}  config={name}\n      {reason}")
+
+    nskip = sum(r[5] for r in results)
+    npass_blocks = sum(r[6] for r in results)
+    print("\n=== summary ===")
+    print(f"runs:           {total}")
     print(f"failed runs:    {nfail}")
     print(f"passed blocks:  {npass_blocks}")
     print(f"skipped blocks: {nskip}")
