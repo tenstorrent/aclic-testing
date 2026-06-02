@@ -18,6 +18,11 @@
 #include "ireg.h"
 #include "xlen.h"
 
+// The detectors use GCC statement-expressions ( ({...}) ); silence -Wpedantic
+// for this header only (restored with the pop before #endif).
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+
 // Run `stmt` with the trap handler set to catch (and step over) a synchronous
 // exception.  Evaluates to 1 if `stmt` did not trap, 0 if it raised one.
 #define probe_legal(stmt) ({          \
@@ -82,5 +87,42 @@ static inline int mtvec_mode_writable(void)
     csr_write(mtvec, saved);
     return (got & 3) == 2;
 }
+
+// --- Supervisor-domain feature detectors ---------------------------------
+// The S-mode CSRs below are accessible from M-mode (M >= S), so these tests
+// run from M-mode like their M-mode counterparts.
+
+// Ssaia external-interrupt top (stopei).
+static inline int have_stopei(void)
+{
+    return probe_legal({ xlreg_t v = 0; csr_read_num(STOPEI, v); (void)v; });
+}
+
+// Ssnip: stopsi / sistatus / sithreshold implemented.
+static inline int have_ssnip(void)
+{
+    return probe_legal({ xlreg_t v = 0; csr_read_num(STOPSI, v); (void)v; });
+}
+
+// Sscsps: sspcs implemented.
+static inline int have_sscsps(void)
+{
+    return probe_legal({ xlreg_t v = 0; csr_read_num(SSPCS, v); (void)v; });
+}
+
+// Ssijt: sijt implemented.
+static inline int have_ssijt(void)
+{
+    return probe_legal({ xlreg_t v = 0; csr_read_num(SIJT, v); (void)v; });
+}
+
+// Sscsps: the scspspush instruction is legal (priv >= S; M qualifies).
+// sistatus.sppush is 0 here, so this does not swap sp.
+static inline int have_scspspush(void)
+{
+    return probe_legal({ asm volatile(".4byte 0x10910173"); });  // scspspush x2, x2
+}
+
+#pragma GCC diagnostic pop
 
 #endif
