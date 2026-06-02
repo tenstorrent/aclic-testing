@@ -7,6 +7,7 @@
 #include "common/aclic.h"
 #include "common/ireg.h"
 #include "common/test.h"
+#include "common/probe.h"
 #include <assert.h>
 
 int main(void)
@@ -14,6 +15,7 @@ int main(void)
     int id = 1;
 
     test("source_mode_roundtrip") {
+        skip_unless(have_aclic_m());
         // Iterate over the spec-defined SM values; SM=2 and SM=3 are reserved
         // and have implementation-specific WARL behavior — skip them here.
         int valid[] = { SM_INACTIVE, SM_DETACHED, SM_EDGE1, SM_EDGE0,
@@ -25,6 +27,7 @@ int main(void)
     }
 
     test("iprio_roundtrip") {
+        skip_unless(have_aclic_m());
         set_source_mode(DOMAIN_M, id, SM_EDGE1);
         for (int p = 1; p <= 255; p += 17) {
             set_iprio(DOMAIN_M, id, p);
@@ -33,6 +36,7 @@ int main(void)
     }
 
     test("enable_roundtrip") {
+        skip_unless(have_aclic_m());
         set_source_mode(DOMAIN_M, id, SM_EDGE1);
         set_enabled(DOMAIN_M, id, 1);
         fail_if(!get_enabled(DOMAIN_M, id));
@@ -41,6 +45,7 @@ int main(void)
     }
 
     test("pending_edge_roundtrip") {
+        skip_unless(have_aclic_m());
         set_source_mode(DOMAIN_M, id, SM_EDGE1);
         set_pending(DOMAIN_M, id, 1);
         fail_if(!get_pending(DOMAIN_M, id));

@@ -8,10 +8,12 @@
 #include "common/aclic.h"
 #include "common/csr.h"
 #include "common/test.h"
+#include "common/probe.h"
 
 int main(void)
 {
     test("miconfig_mipu_roundtrip") {
+        skip_unless(have_aclic_m());
         write_miconfig(1ull << MICONFIG_MIPU_SHIFT);
         uint64_t v = read_miconfig();
         fail_if(((v >> MICONFIG_MIPU_SHIFT) & 1) != 1);

@@ -12,12 +12,14 @@
 #include "common/csr.h"
 #include "common/interrupt.h"
 #include "common/test.h"
+#include "common/probe.h"
 
 #define EX_ILLEGAL_INSTRUCTION 2
 
 int main(void)
 {
     test("mireg5_at_0x1000_illegal") {
+        skip_unless(have_aclic_m());
         write_iselect(DOMAIN_M, 0x1000);
         expect_exception(EX_ILLEGAL_INSTRUCTION) {
             uint64_t v;
@@ -27,6 +29,7 @@ int main(void)
     }
 
     test("mireg6_at_0x1000_illegal") {
+        skip_unless(have_aclic_m());
         write_iselect(DOMAIN_M, 0x1000);
         expect_exception(EX_ILLEGAL_INSTRUCTION) {
             uint64_t v;

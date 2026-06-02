@@ -6,10 +6,12 @@
 #include "common/aclic.h"
 #include "common/ireg.h"
 #include "common/test.h"
+#include "common/probe.h"
 
 int main(void)
 {
     test("miconfig_roundtrip") {
+        skip_unless(have_aclic_m());
         // mnipen=1, mnipbits=4, mipu=1, snipen=1, snipbits=2, sipu=0
         uint64_t v = (1ull << MICONFIG_MNIPEN_SHIFT)
                    | (4ull << MICONFIG_MNIPBITS_SHIFT)
@@ -26,6 +28,7 @@ int main(void)
     }
 
     test("siconfig_aliases_subset_of_miconfig") {
+        skip_unless(have_aclic_m() && have_sireg3());
         // siconfig owns: snipen[3], sipu[5], snipbits[19:16].
         // Writing siconfig=0x60003 sets snipen=0, snipbits=6, sipu=1, snipen=0.
         // Use snipbits=6 to validate (4-bit field).
@@ -47,6 +50,7 @@ int main(void)
     }
 
     test("siconfig_cannot_write_mmode_only_bits") {
+        skip_unless(have_aclic_m() && have_sireg3());
         // siconfig has read-only-zero for mnipen/mnipbits/mipu.  Writing them
         // through siconfig must NOT affect miconfig's M-mode fields.
         write_miconfig(0);

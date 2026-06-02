@@ -13,6 +13,7 @@
 #include "common/aclic.h"
 #include "common/ireg.h"
 #include "common/test.h"
+#include "common/probe.h"
 
 int main(void)
 {
@@ -22,6 +23,7 @@ int main(void)
     int id = SCFG_FIELDS;
 
     test("sireg3_sourcecfg_roundtrip") {
+        skip_unless(have_aclic_m() && have_sireg3());
         // Delegate the source to the S-domain, then drive its sourcecfg there.
         // set_source_mode/get_source_mode for this id go through sireg3.
         delegate(id);

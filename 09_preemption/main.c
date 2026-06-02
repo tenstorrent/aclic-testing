@@ -12,6 +12,7 @@
 #include "common/ireg.h"
 #include "common/csr.h"
 #include "common/test.h"
+#include "common/probe.h"
 
 static inline void write_mithreshold(uint64_t v) { csr_write_num(MITHRESHOLD, v); }
 static inline uint64_t read_mtopsi(void)         { xlreg_t v; csr_read_num(MTOPSI, v); return v; }
@@ -21,6 +22,7 @@ int main(void)
     asm volatile("csrci mstatus, 8" ::: "memory");
 
     test("mnipbits_groups_priorities") {
+        skip_unless(have_smnip());
         // mnipen=1, mnipbits=4 -> NIPPRIO_MASK = ~0x0F (top 4 bits matter).
         uint64_t cfg = (1ull << MICONFIG_MNIPEN_SHIFT)
                      | (4ull << MICONFIG_MNIPBITS_SHIFT);

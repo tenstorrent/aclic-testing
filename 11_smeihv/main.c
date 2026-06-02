@@ -8,11 +8,13 @@
 
 #include "common/csr.h"
 #include "common/test.h"
+#include "common/probe.h"
 #include <stdint.h>
 
 int main(void)
 {
     test("mtvec_mode_10_writable_with_smeihv") {
+        skip_unless(mtvec_mode_writable());
         xlreg_t saved;
         csr_read(mtvec, saved);
         xlreg_t base = saved & ~0x3ull;

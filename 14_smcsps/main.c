@@ -7,6 +7,7 @@
 #include "common/csr.h"
 #include "common/test.h"
 #include "common/xlen.h"
+#include "common/probe.h"
 
 // mspcs/mistatus are MXLEN-wide; read/write them with an XLEN-wide value so the
 // csr access is a single register on both RV32 and RV64.
@@ -29,12 +30,14 @@ static inline void    write_mspcs(xlreg_t v)     { csr_write_num(MSPCS, v); }
 int main(void)
 {
     test("mspcs_full_xlen_roundtrip") {
+        skip_unless(have_smcsps());
         xlreg_t v = PAT_A;
         write_mspcs(v);
         fail_if(read_mspcs() != v);
     }
 
     test("mcspspush_no_swap_when_sppush_zero") {
+        skip_unless(have_smcsps() && have_smnip() && have_mcspspush());
         // mistatus.sppush = 0 -> no swap; psppush gets latched to 0.
         write_mistatus(0);
         write_mspcs(PAT_1);
@@ -51,6 +54,7 @@ int main(void)
     }
 
     test("mcspspush_swaps_when_sppush_one") {
+        skip_unless(have_smcsps() && have_smnip() && have_mcspspush());
         write_mistatus((xlreg_t)1 << 6);      // sppush = 1
         write_mspcs(PAT_2);
         xlreg_t saved_sp;

@@ -14,6 +14,7 @@
 #include "common/ireg.h"
 #include "common/csr.h"
 #include "common/test.h"
+#include "common/probe.h"
 
 static inline uint64_t read_mtopsi(void) {
     xlreg_t v; csr_read_num(MTOPSI, v); return v;
@@ -31,6 +32,7 @@ int main(void)
     int id1 = 1, id2 = 5;
 
     test("idle_returns_threshold") {
+        skip_unless(have_smnip());
         // No pending+enabled source — mtopsi returns SIID=0, IPRIO=mithreshold.
         // Use a recognizable threshold value 0x42 (66 dec).
         write_mithreshold(0x42);
@@ -40,6 +42,7 @@ int main(void)
     }
 
     test("external_positive_siid") {
+        skip_unless(have_smnip());
         write_mithreshold(0);     // disable threshold gating
         set_source_mode(DOMAIN_M, id1, SM_EDGE1);
         set_iprio(DOMAIN_M, id1, 7);
@@ -57,6 +60,7 @@ int main(void)
     }
 
     test("highest_priority_wins") {
+        skip_unless(have_smnip());
         write_mithreshold(0);
         set_source_mode(DOMAIN_M, id1, SM_EDGE1);
         set_iprio(DOMAIN_M, id1, 8);
@@ -81,6 +85,7 @@ int main(void)
     }
 
     test("claim_raises_threshold_and_clears_pending") {
+        skip_unless(have_smnip());
         // Set up a pending external interrupt at IPRIO=3.
         write_mithreshold(0);
         set_source_mode(DOMAIN_M, id1, SM_EDGE1);

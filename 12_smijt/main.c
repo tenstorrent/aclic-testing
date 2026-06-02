@@ -8,11 +8,13 @@
 
 #include "common/csr.h"
 #include "common/test.h"
+#include "common/probe.h"
 #include <stdint.h>
 
 int main(void)
 {
     test("mijt_base_64byte_aligned") {
+        skip_unless(have_smijt());
         // Write a 64-byte-aligned address; low 6 bits must read back zero
         // (WARL on BASE).
         xlreg_t addr = 0x80004000ull;      // aligned to 64
@@ -24,6 +26,7 @@ int main(void)
     }
 
     test("mijt_shamt_field_writable") {
+        skip_unless(have_smijt());
         xlreg_t base = 0x80004000ull;
         csr_write_num(MIJT, base | 3);     // SHAMT = 3
         xlreg_t got;
@@ -32,6 +35,7 @@ int main(void)
     }
 
     test("mijt_ehv_field_writable") {
+        skip_unless(have_smijt());
         xlreg_t base = 0x80004000ull;
         csr_write_num(MIJT, base | (1ull << 2));  // EHV[3:2] = 01
         xlreg_t got;

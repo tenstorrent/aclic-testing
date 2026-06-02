@@ -7,11 +7,13 @@
 
 #include "common/csr.h"
 #include "common/test.h"
+#include "common/probe.h"
 #include <stdint.h>
 
 int main(void)
 {
     test("xijt_ehv_can_be_programmed_to_nonzero") {
+        skip_unless(have_smijt());
         csr_write_num(MIJT, 0x80004000ull | (1ull << 2));
         xlreg_t got;
         csr_read_num(MIJT, got);

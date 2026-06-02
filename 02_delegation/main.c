@@ -7,12 +7,14 @@
 #include "common/aclic.h"
 #include "common/ireg.h"
 #include "common/test.h"
+#include "common/probe.h"
 
 int main(void)
 {
     int id = 3;
 
     test("delegate_moves_source_to_s_domain") {
+        skip_unless(have_aclic_m() && have_sireg3());
         // Configure source in M with non-zero state.
         set_source_mode(DOMAIN_M, id, SM_EDGE1);
         set_iprio(DOMAIN_M, id, 5);
@@ -30,6 +32,7 @@ int main(void)
     }
 
     test("undelegate_clears_s_domain_state") {
+        skip_unless(have_aclic_m() && have_sireg3());
         // Configure delegated source in S, then undelegate.
         delegate(id);
         set_source_mode(DOMAIN_S, id, SM_EDGE1);

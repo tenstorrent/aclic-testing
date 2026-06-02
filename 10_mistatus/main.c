@@ -6,6 +6,7 @@
 
 #include "common/csr.h"
 #include "common/test.h"
+#include "common/probe.h"
 #include <stdint.h>
 
 static inline uint64_t read_mistatus(void)    { xlreg_t v; csr_read_num(MISTATUS, v); return v; }
@@ -15,6 +16,7 @@ static inline uint64_t read_mstatus(void)     { xlreg_t v; csr_read(mstatus, v);
 int main(void)
 {
     test("mistatus_mpp_alias_reads_mstatus_mpp") {
+        skip_unless(have_smnip());
         // mstatus.MPP at bits[12:11] -> mistatus.mpp at bits[29:28].
         csr_set(mstatus, 3ull << 11);     // MPP = 3 (machine)
         uint64_t mis = read_mistatus();
@@ -22,12 +24,14 @@ int main(void)
     }
 
     test("mistatus_mpie_alias_reads_mstatus_mpie") {
+        skip_unless(have_smnip());
         csr_set(mstatus, 1ull << 7);      // MPIE = 1
         uint64_t mis = read_mistatus();
         fail_if(((mis >> 27) & 0x1) != 1);
     }
 
     test("mistatus_pithreshprio_owned_writable") {
+        skip_unless(have_smnip());
         uint64_t val = (0x55ull << 8);    // pithreshprio = 0x55
         write_mistatus(val);
         uint64_t got = read_mistatus();
@@ -35,6 +39,7 @@ int main(void)
     }
 
     test("mistatus_mie_alias_writethrough") {
+        skip_unless(have_smnip());
         // Writing mistatus.mie (bit 0) should propagate to mstatus.MIE (bit 3).
         // Start with MIE=0 (csrci above), then write mistatus[0]=1.
         csr_clear(mstatus, 1ull << 3);
