@@ -39,12 +39,14 @@ JOBS = int(os.environ.get("JOBS", os.cpu_count() or 8))
 BASE = {
     64: ("rv64imafdcvhus_zicbom_zicbop_zicboz_zicntr_zicond_zicsr_zihintpause_"
          "zihpm_zimop_zawrs_zfa_zfbfmin_zfh_zkr_zcb_zcmop_zba_zbb_zbs_zvbb_zvbc_"
-         "zvfbfmin_zvfbfwma_zvfh_zvkg_zvkned_zvknhb_zvqdot_sdtrig_smaia_smidctrl_"
-         "smmpm_smnpm_smrnmi_smstateen_ssaia_ssidctrl_sscofpmf_ssnpm_ssqosid_"
+         "zvfbfmin_zvfbfwma_zvfh_zvkg_zvkned_zvknhb_zvqdot_sdtrig_smaia_smcsrind_"
+         "smidctrl_smmpm_smnpm_smrnmi_smstateen_ssaia_sscsrind_ssidctrl_sscofpmf_"
+         "ssnpm_ssqosid_"
          "sstc_svadu_svinval_svnapot_svpbmt_zifencei"),
     32: ("rv32imacsu_zicsr_zicntr_zicond_zihintpause_zihpm_zimop_zawrs_zcb_zcmop_"
-         "zba_zbb_zbs_sdtrig_smaia_smidctrl_smmpm_smnpm_smrnmi_smstateen_ssaia_"
-         "ssidctrl_sscofpmf_ssnpm_ssqosid_sstc_svadu_svinval_svnapot_svpbmt_"
+         "zba_zbb_zbs_sdtrig_smaia_smcsrind_smidctrl_smmpm_smnpm_smrnmi_smstateen_"
+         "ssaia_sscsrind_ssidctrl_sscofpmf_ssnpm_ssqosid_sstc_svadu_svinval_"
+         "svnapot_svpbmt_"
          "zifencei"),
 }
 
