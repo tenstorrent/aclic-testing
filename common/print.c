@@ -19,7 +19,7 @@ void print_int(int x)
     *p = 0;
     int neg = x < 0;
     if (neg)
-        x *= -1;
+        x = -x;
     if (x == 0)
         *--p = '0';
     while (x) {

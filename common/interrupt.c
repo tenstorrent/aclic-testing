@@ -10,7 +10,7 @@ void push_intr(uint64_t id)
     exp_intr_ids[num_exp_intr++] = id;
 }
 
-void pop_intr()
+void pop_intr(void)
 {
     assert(num_intr_seen > 0);
     num_intr_seen--;
@@ -18,7 +18,7 @@ void pop_intr()
     assert(exp_intr_ids[num_exp_intr] == intr_ids_seen[num_intr_seen]);
 }
 
-void set_excp_ok()
+void set_excp_ok(void)
 {
     excp_ok = 1;
     excp_mcause = 0;

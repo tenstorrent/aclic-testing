@@ -15,5 +15,4 @@
         !macro_var(_i_);                    \
         (macro_var(_i_) += 1), end)
 
-
 #endif

@@ -1,4 +1,4 @@
+*.elf
 *.dis
 *.log
-*.elf
-.*.swp
+whisper-fixed

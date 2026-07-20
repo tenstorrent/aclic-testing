@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #ifndef HTIF_H
+#define HTIF_H
 
 #include <stdint.h>
 

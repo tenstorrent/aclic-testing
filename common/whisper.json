@@ -1,8 +1,8 @@
 {
-    "isa" : "rv64imafdcvhus_zicbom_zicbop_zicboz_zicntr_zicond_zicsr_zihintpause_zihpm_zimop_zawrs_zfa_zfbfmin_zfh_zkr_zcb_zcmop_zba_zbb_zbs_zvbb_zvbc_zvfbfmin_zvfbfwma_zvfh_zvkg_zvkned_zvknhb_zvqdot_sdtrig_smaia_smidctrl_smnip_smip_smcsps_smmpm_smnpm_smrnmi_smstateen_ssaia_ssidctrl_ssnip_ssip_sscsps_sscofpmf_ssnpm_ssqosid_sstc_svadu_svinval_svnapot_svpbmt_zifencei",
+    "isa" : "rv64imafdcvhus_zicbom_zicbop_zicboz_zicntr_zicond_zicsr_zihintpause_zihpm_zimop_zawrs_zfa_zfbfmin_zfh_zkr_zcb_zcmop_zba_zbb_zbs_zvbb_zvbc_zvfbfmin_zvfbfwma_zvfh_zvkg_zvkned_zvknhb_zvqdot_sdtrig_smaia_smcsrind_smidctrl_smnip_smip_smcsps_smijt_smehv_smeihv_smmpm_smnpm_smrnmi_smstateen_ssaia_sscsrind_ssidctrl_ssnip_ssip_sscsps_ssijt_ssehv_sseihv_sscofpmf_ssnpm_ssqosid_sstc_svadu_svinval_svnapot_svpbmt_zifencei",
     "aclic" : {
         "num_sources" : 16,
         "has_supervisor_domain" : true,
-        "ipriolen": 7
+        "ipriolen" : 8
     }
 }

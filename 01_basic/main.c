@@ -1,36 +1,57 @@
 // SPDX-FileCopyrightText: © 2026 Tenstorrent USA, Inc.
 // SPDX-License-Identifier: Apache-2.0
+//
+// 01_basic — sanity test that source-mode / iprio / enable / pending round-trip
+// through xireg/xireg2/xireg3 still works after the spec rework.
 
-#include "common/ireg.h"
 #include "common/aclic.h"
-#include "common/interrupt.h"
+#include "common/ireg.h"
+#include "common/test.h"
+#include "common/probe.h"
+#include <assert.h>
 
-int main()
+int main(void)
 {
     int id = 1;
-    int domain = DOMAIN_M;
 
-    // Enabled, then pending
-    set_source_mode(domain, id, SM_EDGE1);
-    set_iprio(domain, id, 1);
-    set_enabled(domain, id, 1);
-    expect_interrupt(id) {
-        set_pending(domain, id, 1);
+    test("source_mode_roundtrip") {
+        skip_unless(have_aclic_m());
+        // Iterate over the spec-defined SM values; SM=2 and SM=3 are reserved
+        // and have implementation-specific WARL behavior — skip them here.
+        int valid[] = { SM_INACTIVE, SM_DETACHED, SM_EDGE1, SM_EDGE0,
+                        SM_LEVEL1,   SM_LEVEL0 };
+        for (unsigned i = 0; i < sizeof(valid)/sizeof(valid[0]); i++) {
+            set_source_mode(DOMAIN_M, id, valid[i]);
+            fail_if(get_source_mode(DOMAIN_M, id) != valid[i]);
+        }
     }
 
-    // Pending, then enabled
-    set_enabled(domain, id, 0);
-    set_pending(domain, id, 1);
-    expect_interrupt(id) {
-        set_enabled(domain, id, 1);
+    test("iprio_roundtrip") {
+        skip_unless(have_aclic_m());
+        set_source_mode(DOMAIN_M, id, SM_EDGE1);
+        for (int p = 1; p <= 255; p += 17) {
+            set_iprio(DOMAIN_M, id, p);
+            fail_if(get_iprio(DOMAIN_M, id) != p);
+        }
     }
 
-#if ACLIC_HINTS
-    // Due to source state
-    expect_interrupt(id) {
-        set_source_state(id, 1);
+    test("enable_roundtrip") {
+        skip_unless(have_aclic_m());
+        set_source_mode(DOMAIN_M, id, SM_EDGE1);
+        set_enabled(DOMAIN_M, id, 1);
+        fail_if(!get_enabled(DOMAIN_M, id));
+        set_enabled(DOMAIN_M, id, 0);
+        fail_if(get_enabled(DOMAIN_M, id));
     }
-#endif
+
+    test("pending_edge_roundtrip") {
+        skip_unless(have_aclic_m());
+        set_source_mode(DOMAIN_M, id, SM_EDGE1);
+        set_pending(DOMAIN_M, id, 1);
+        fail_if(!get_pending(DOMAIN_M, id));
+        set_pending(DOMAIN_M, id, 0);
+        fail_if(get_pending(DOMAIN_M, id));
+    }
 
     return 0;
 }

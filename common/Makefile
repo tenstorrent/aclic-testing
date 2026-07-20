@@ -1,37 +1,45 @@
 # SPDX-FileCopyrightText: © 2026 Tenstorrent USA, Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-.PHONY: all run
+.PHONY: all run clean
 
 CC = riscv64-unknown-elf-gcc
 OBJDUMP = riscv64-unknown-elf-objdump
 GDB = riscv64-unknown-elf-gdb
-WHISPER = whisper
+WHISPER ?= whisper
 
 SRC = $(wildcard *.[Sc]) $(wildcard ../common/*.[Sc])
 HDR = $(wildcard ../common/*.h)
 
-CFLAGS = -g -O3 -flto -mcmodel=medany -nostdlib -Wall -Wextra -pedantic 
+CFLAGS = -g -O3 -flto -mcmodel=medany -nostdlib -Wall -Wextra -pedantic
 CPPFLAGS = -I../
 CPPFLAGS += -DASSERT_PRINT
 
-# Uncomment this if Whisper is compiled with ACLIC_HINTS
-#CPPFLAGS += -DACLIC_HINTS
-
 MAX_INST = 10000
 
-all: test.elf
+# XLEN selects the register width.  An ELF is XLEN-specific, so each width gets
+# its own toolchain flags, whisper config, and (uniquely named) artifacts.
+XLEN ?= 64
+ifeq ($(XLEN),32)
+  ARCHFLAGS = -march=rv32imac_zicsr -mabi=ilp32
+  WHISPER_CONFIG = ../common/whisper-rv32.json
+else
+  ARCHFLAGS = -march=rv64imac_zicsr -mabi=lp64
+  WHISPER_CONFIG = ../common/whisper.json
+endif
 
-test.elf: $(SRC) $(HDR) ../common/test.ld
-	$(CC) $(CFLAGS) -T ../common/test.ld -o test.elf $(CPPFLAGS) $(SRC)
-	$(OBJDUMP) -dl test.elf > test.dis
+ELF = test-$(XLEN).elf
+DIS = test-$(XLEN).dis
+LOG = test-$(XLEN).log
 
-run: test.elf
-	$(WHISPER) --hintops --configfile ../common/whisper.json -m $(MAX_INST) -f test.log test.elf
+all: $(ELF)
 
-debug:
-	gdb --args $(WHISPER) --hintops --configfile ../common/whisper.json -m $(MAX_INST) -l test.elf
-	$(GDB) test.elf -ex "target remote | $(WHISPER) --gdb --hintops --configfile ../common/whisper.json test.elf"
+$(ELF): $(SRC) $(HDR) ../common/test.ld
+	$(CC) $(CFLAGS) $(ARCHFLAGS) -T ../common/test.ld -o $(ELF) $(CPPFLAGS) $(SRC)
+	$(OBJDUMP) -dl $(ELF) > $(DIS)
+
+run: $(ELF)
+	$(WHISPER) --configfile $(WHISPER_CONFIG) -m $(MAX_INST) -f $(LOG) $(ELF)
 
 clean:
 	rm -f *.log *.elf *.dis

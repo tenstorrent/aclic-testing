@@ -26,8 +26,15 @@ _start:
     li t0, 1 << 3 // mnstatus.NMIE
     csrs MNSTATUS, t0
 
-    li t0, (1 << 60) | (1 << 53) // CSRIND, ACLIC
+    // mstateen0.CSRIND (bit 60) and mstateen0.ACLIC (bit 53).  On RV32 these
+    // live in the high-half CSR mstateen0h (bits 28 and 21).
+#if __riscv_xlen == 64
+    li t0, (1 << 60) | (1 << 53)
     csrs MSTATEEN0, t0
+#else
+    li t0, (1 << (60 - 32)) | (1 << (53 - 32))
+    csrs MSTATEEN0H, t0
+#endif
 
     li t0, 1 << 3 // mstatus.MIE
     csrs mstatus, t0
@@ -42,11 +49,18 @@ _start:
 
 .globl exit
 exit:
-    li t0, 0xffffffffffff
     slli a0, a0, 1
-    and a0, a0, t0
     ori a0, a0, 1
+#if __riscv_xlen == 64
+    li t0, 0xffffffffffff      // bound the exit code; mask keeps bit 0 set
+    and a0, a0, t0
     sd a0, tohost, t0
+#else
+    // tohost is an 8-byte HTIF location; write the value low word, zero the high word.
+    la t0, tohost
+    sw a0, 0(t0)
+    sw zero, 4(t0)
+#endif
 1:  j 1b
 
 .weak main

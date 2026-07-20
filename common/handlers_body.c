@@ -5,11 +5,13 @@
 #include "csr.h"
 #include "print.h"
 #include "htif.h"
+#include "xlen.h"
 
-#define MCAUSE_SEI          0x8000000000000009ull
+// Interrupt cause: high bit (bit XLEN-1) set, exception code 9 (S external).
+#define MCAUSE_SEI          (((xlreg_t)1 << (XLEN - 1)) | 9u)
 #define MCAUSE_ECALL_SMODE  9ull
 
-void
+static void
 die(const char * s)
 {
     print_str(s);
@@ -17,15 +19,15 @@ die(const char * s)
 }
 
 void
-mhandler_body()
+mhandler_body(void)
 {
-    uint64_t mcause;
+    xlreg_t mcause;
     csr_read(mcause, mcause);
-    int interrupt = (mcause & (1ull << 63)) != 0;
+    int interrupt = (mcause & ((xlreg_t)1 << (XLEN - 1))) != 0;
     if (interrupt) {
         if (num_intr_seen >= num_exp_intr)
             die("Unexpected interrupt\n");
-        uint64_t topei;
+        xlreg_t topei;
         if (mcause == MCAUSE_SEI)
             sclaim(topei);
         else
