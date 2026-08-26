@@ -21,8 +21,8 @@ int main(void)
         csr_write_num(MIJT, addr | 0x3F);  // try to set low bits
         xlreg_t got;
         csr_read_num(MIJT, got);
-        // Low 6 bits: SHAMT[1:0] and EHV[3:2] are writable; bits[5:4] reserved.
-        fail_if((got & ~0x0F) != (addr & ~0x3F));
+        // Low 6 bits: SHAMT[1:0] and EHV[2] are writable; bits[5:3] reserved.
+        fail_if((got & ~0x07) != (addr & ~0x3F));
     }
 
     test("mijt_shamt_field_writable") {
@@ -37,7 +37,7 @@ int main(void)
     test("mijt_ehv_field_writable") {
         skip_unless(have_smijt());
         xlreg_t base = 0x80004000ull;
-        csr_write_num(MIJT, base | (1ull << 2));  // EHV[3:2] = 01
+        csr_write_num(MIJT, base | (1ull << 2));  // EHV[2] = 1
         xlreg_t got;
         csr_read_num(MIJT, got);
         fail_if(((got >> 2) & 0x3) != 1);
